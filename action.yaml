@@ -1,0 +1,24 @@
+name: Say Hello ts
+description: not relevant
+inputs:
+  java-version:
+    description: 'The Java version to set up. Takes a whole or semver Java version. See examples of supported syntax in README file'
+    required: false
+    default: 17
+  distribution:
+    description: 'Java distribution. See the list of supported distributions in README file'
+    required: true
+  java-package:
+    description: 'The package type (jdk, jre)'
+    required: false
+    default: 'jdk'
+outputs:
+  distribution:
+    description: 'Distribution of Java that has been installed'
+  version:
+    description: 'Actual version of the java environment that has been installed'
+  path:
+    description: 'Path to where the java environment has been installed (same as $JAVA_HOME)'
+runs:
+  using: 'node20'
+  main: 'dist/main.js'
