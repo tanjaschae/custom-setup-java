@@ -1,22 +1,30 @@
 import * as core from '@actions/core';
+import * as tc from '@actions/tool-cache';
 import { isAllowed } from "./allowedInput";
 
 async function run(): Promise<void> {
 
     try {
-        const javaVersion = core.getInput('java-version')
+        const version = core.getInput('java-version')
         const distribution = core.getInput('distribution', {required: true})
-        const javaPackage = core.getInput('java-package')
+        const pkg = core.getInput('java-package')
 
-        if (isAllowed(javaVersion, "version") && isAllowed(distribution, "distribution") && isAllowed(javaPackage, "package")) {
-            core.info(`${javaVersion.toUpperCase()} ${distribution.toUpperCase()} ${javaPackage.toUpperCase()} is a valid input`);
+        if (isAllowed(version, "version") && isAllowed(distribution, "distribution") && isAllowed(pkg, "package")) {
+            core.info(`${version.toUpperCase()} ${distribution.toUpperCase()} ${pkg.toUpperCase()} is a valid input`);
 
-            core.info(`Running on OS: ${process.env.RUNNER_OS}`);
+            const os = process.env.RUNNER_OS;
+            // use arch in path
             core.info(`Directory where tools are cached: ${process.env.RUNNER_TOOL_CACHE}`);
             core.info(`Path to the checked-out repo: ${process.env.GITHUB_WORKSPACE}`);
 
+            const downloadUrl = getDownloadUrl(distribution, version, pkg)
+            core.info(`Download URL: ${downloadUrl}`);
+            const archivePath =  await tc.downloadTool(downloadUrl)
+            core.info(`Download URL: ${archivePath}`);
+
+
         } else {
-            core.info(`${javaVersion.toUpperCase()} ${distribution.toUpperCase()} ${javaPackage.toUpperCase()} is not a valid input`);
+            core.info(`${version.toUpperCase()} ${distribution.toUpperCase()} ${pkg.toUpperCase()} is not a valid input`);
         }
 
 
@@ -29,15 +37,33 @@ async function run(): Promise<void> {
         // jdk-24_linux-x64_bin.tar.gz oracle
 
 
-        core.notice(`First try with ${javaVersion} ${distribution} ${javaPackage}`);
+        core.notice(`First try with ${version} ${distribution} ${pkg}`);
 
         core.setOutput('distribution', distribution)
-        core.setOutput('version', javaVersion)
+        core.setOutput('version', version)
         core.setOutput('path', "java/home/path")
     } catch (error) {
         if (error instanceof Error) core.setFailed(error.message);
     }
 }
+
+function getDownloadUrl(
+    distribution: string,
+    version: string,
+    pkg: string
+): string {
+    switch (distribution) {
+        case 'temurin':
+            return `https://api.adoptium.net/v3/binary/latest/${version}/ga/linux/x64/${pkg}/hotspot/normal/eclipse`;
+        case 'zulu':
+            return `https://cdn.azul.com/zulu/bin/zulu${version}-ca-${pkg}.tar.gz`;
+        case 'oracle':
+            throw new Error('Oracle JDK requires manual license acceptance and cannot be downloaded directly.');
+        default:
+            throw new Error(`Unsupported distribution: ${distribution}`);
+    }
+}
+
 
 
 
