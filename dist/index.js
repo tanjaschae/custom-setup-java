@@ -28273,7 +28273,9 @@ async function run() {
             const downloadUrl = getDownloadUrl(distribution, version, pkg);
             core.info(`Download URL: ${downloadUrl}`);
             const archivePath = await tc.downloadTool(downloadUrl);
-            core.info(`Download URL: ${archivePath}`);
+            core.info(`archivePath: ${archivePath}`);
+            const extractPath = await tc.extractTar(archivePath);
+            core.info(`extractPath: ${extractPath}`);
         }
         else {
             core.info(`${version.toUpperCase()} ${distribution.toUpperCase()} ${pkg.toUpperCase()} is not a valid input`);
