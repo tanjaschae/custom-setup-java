@@ -21,4 +21,4 @@ outputs:
     description: 'Path to where the java environment has been installed (same as $JAVA_HOME)'
 runs:
   using: 'node20'
-  main: 'dist/main.js'
+  main: 'dist/index.js'

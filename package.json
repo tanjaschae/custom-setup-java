@@ -1,9 +1,11 @@
 {
   "name": "custom-setup-java",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "ncc build src/main.ts -o dist",
+    "prepare": "npm run build"
   },
   "keywords": [],
   "author": "",
@@ -11,6 +13,7 @@
   "description": "",
   "devDependencies": {
     "@types/node": "^22.15.17",
+    "@vercel/ncc": "^0.38.3",
     "typescript": "^5.8.3"
   },
   "dependencies": {
