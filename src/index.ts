@@ -1,6 +1,10 @@
 import * as core from '@actions/core';
 import * as tc from '@actions/tool-cache';
-import { isAllowed } from "./allowedInput";
+import * as cache from '@actions/cache';
+import * as exec from '@actions/exec';
+import {isAllowed} from "./allowedInput";
+import path from "node:path";
+import * as fs from "node:fs";
 
 async function run(): Promise<void> {
 
@@ -13,24 +17,42 @@ async function run(): Promise<void> {
             core.info(`${version.toUpperCase()} ${distribution.toUpperCase()} ${pkg.toUpperCase()} is a valid input`);
 
             const os = process.env.RUNNER_OS;
-            // use arch in path
             core.info(`Directory where tools are cached: ${process.env.RUNNER_TOOL_CACHE}`);
             core.info(`Path to the checked-out repo: ${process.env.GITHUB_WORKSPACE}`);
 
-            const downloadUrl = getDownloadUrl(distribution, version, pkg)
-            core.info(`Download URL: ${downloadUrl}`);
-            const archivePath =  await tc.downloadTool(downloadUrl)
-            core.info(`archivePath: ${archivePath}`);
-            const extractPath = await tc.extractTar(archivePath);
-            core.info(`extractPath: ${extractPath}`);
+            const cacheKey = `java-${distribution}-${version}-${pkg}`;
+            const toolDir = path.join(process.env['RUNNER_TOOL_CACHE'] || '/tmp', cacheKey);
+            // Try to restore from cache
+            const cacheHit = await cache.restoreCache([toolDir], cacheKey);
 
+            if (cacheHit) {
+                core.info(`Restored Java from cache: ${toolDir}`);
+            } else {
+                // Download and extract
+                const downloadUrl = getDownloadUrl(distribution, version, pkg)
+                core.info(`Download URL: ${downloadUrl}`);
+                const archivePath = await tc.downloadTool(downloadUrl)
+                const extractPath = await tc.extractTar(archivePath, toolDir);
+                core.info(`Java extracted to ${extractPath}`);
+                // Save to cache
+                await cache.saveCache([toolDir], cacheKey);
+                core.info(`Cached Java at key: ${cacheKey}`);
+            }
+
+            // Point JAVA_HOME to the extracted folder (assumes single folder inside)
+            const javaHome = fs.readdirSync(toolDir).length === 1
+                ? path.join(toolDir, fs.readdirSync(toolDir)[0])
+                : toolDir;
+
+            core.exportVariable('JAVA_HOME', javaHome);
+            core.addPath(path.join(javaHome, 'bin'));
+
+            await exec.exec('java', ['-version']);
+            core.info('Java is set up and verified.');
 
         } else {
             core.info(`${version.toUpperCase()} ${distribution.toUpperCase()} ${pkg.toUpperCase()} is not a valid input`);
         }
-
-
-
 
 
         // OpenJDK21U-jdk_x64_linux_hotspot_21.0.7_6.tar.gz temurin
@@ -65,8 +87,6 @@ function getDownloadUrl(
             throw new Error(`Unsupported distribution: ${distribution}`);
     }
 }
-
-
 
 
 run();
