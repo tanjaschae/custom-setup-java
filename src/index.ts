@@ -32,6 +32,7 @@ async function run(): Promise<void> {
                 const downloadUrl = getDownloadUrl(distribution, version, pkg)
                 core.info(`Download URL: ${downloadUrl}`);
                 const archivePath = await tc.downloadTool(downloadUrl)
+                core.info(`archivePath: ${archivePath}`)
                 // const extractPath = await tc.extractTar(archivePath, toolDir);
                 const extractPath = await extractArchive(archivePath)
 
