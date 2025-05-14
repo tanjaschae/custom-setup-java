@@ -66087,7 +66087,8 @@ async function run() {
                 const downloadUrl = getDownloadUrl(distribution, version, pkg);
                 core.info(`Download URL: ${downloadUrl}`);
                 const archivePath = await tc.downloadTool(downloadUrl);
-                const extractPath = await tc.extractTar(archivePath, toolDir);
+                // const extractPath = await tc.extractTar(archivePath, toolDir);
+                const extractPath = await extractArchive(archivePath);
                 core.info(`Java extracted to ${extractPath}`);
                 // Save to cache
                 await cache.saveCache([toolDir], cacheKey);
@@ -66125,6 +66126,19 @@ function getDownloadUrl(distribution, version, pkg) {
             throw new Error('Oracle JDK requires manual license acceptance and cannot be downloaded directly.');
         default:
             throw new Error(`Unsupported distribution: ${distribution}`);
+    }
+}
+async function extractArchive(archivePath) {
+    const ext = node_path_1.default.extname(archivePath).toLowerCase();
+    const lowerPath = archivePath.toLowerCase();
+    switch (true) {
+        case lowerPath.endsWith('.tar.gz'):
+        case lowerPath.endsWith('.tgz'):
+            return await tc.extractTar(archivePath);
+        case ext === '.zip':
+            return await tc.extractZip(archivePath);
+        default:
+            throw new Error(`Unsupported archive format: ${ext}`);
     }
 }
 run();
