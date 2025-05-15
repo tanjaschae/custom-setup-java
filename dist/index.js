@@ -66091,10 +66091,10 @@ async function run() {
         if ((0, allowedInput_1.isAllowed)(version, "version") && (0, allowedInput_1.isAllowed)(distribution, "distribution") && (0, allowedInput_1.isAllowed)(pkg, "package")) {
             core.info(`${version.toUpperCase()} ${distribution.toUpperCase()} ${pkg.toUpperCase()} is a valid input`);
             const os = process.env.RUNNER_OS;
-            core.info(`Directory where tools are cached: ${process.env.RUNNER_TOOL_CACHE}`);
-            core.info(`Path to the checked-out repo: ${process.env.GITHUB_WORKSPACE}`);
+            const runnerToolCache = process.env.RUNNER_TOOL_CACHE || '/tmp';
+            core.info(`Directory where tools are cached: ${runnerToolCache}`);
             const cacheKey = `java-${distribution}-${version}-${pkg}`;
-            const toolDir = node_path_1.default.join(process.env['RUNNER_TOOL_CACHE'] || '/tmp', cacheKey);
+            const toolDir = node_path_1.default.join(runnerToolCache, cacheKey);
             core.info(`toolDir: ${toolDir}`);
             // /opt/hostedtools/java-zulu-21-jdk
             // Try to restore from cache
@@ -66135,19 +66135,21 @@ async function run() {
     }
 }
 function setEnvironment(dir) {
-    // Point JAVA_HOME to the extracted folder (assumes single folder inside)
-    const javaHome = fs.readdirSync(dir).length === 1
-        ? node_path_1.default.join(dir, fs.readdirSync(dir)[0])
-        : dir;
-    core.exportVariable('JAVA_HOME', javaHome);
-    core.addPath(node_path_1.default.join(javaHome, 'bin'));
+    const determineJavaHome = (folderPath) => {
+        const subDirectories = fs.readdirSync(folderPath);
+        return subDirectories.length === 1 ? node_path_1.default.join(folderPath, subDirectories[0]) : folderPath;
+    };
+    const javaHomePath = determineJavaHome(dir);
+    core.exportVariable('JAVA_HOME', javaHomePath);
+    core.addPath(node_path_1.default.join(javaHomePath, 'bin'));
 }
 function getDownloadUrl(distribution, version, pkg) {
     switch (distribution) {
         case 'temurin':
             return `https://api.adoptium.net/v3/binary/latest/${version}/ga/linux/x64/${pkg}/hotspot/normal/eclipse`;
         case 'zulu':
-            return `https://cdn.azul.com/zulu/bin/zulu${version}.42.19-ca-${pkg}${version}.0.7-linux_x64.tar.gz`;
+            // return `https://cdn.azul.com/zulu/bin/zulu${version}.42.19-ca-${pkg}${version}.0.7-linux_x64.tar.gz`;
+            return `https://cdn.azul.com/zulu/bin/zulu${version}.80.21-ca-${pkg}${version}.0.27-linux_x64.tar.gz`;
         case 'oracle':
             throw new Error('Oracle JDK requires manual license acceptance and cannot be downloaded directly.');
         default:

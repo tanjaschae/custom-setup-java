@@ -18,11 +18,11 @@ async function run(): Promise<void> {
             core.info(`${version.toUpperCase()} ${distribution.toUpperCase()} ${pkg.toUpperCase()} is a valid input`);
 
             const os = process.env.RUNNER_OS;
-            core.info(`Directory where tools are cached: ${process.env.RUNNER_TOOL_CACHE}`);
-            core.info(`Path to the checked-out repo: ${process.env.GITHUB_WORKSPACE}`);
+            const runnerToolCache = process.env.RUNNER_TOOL_CACHE || '/tmp';
+            core.info(`Directory where tools are cached: ${runnerToolCache}`);
 
             const cacheKey = `java-${distribution}-${version}-${pkg}`;
-            const toolDir = path.join(process.env['RUNNER_TOOL_CACHE'] || '/tmp', cacheKey);
+            const toolDir = path.join(runnerToolCache, cacheKey);
             core.info(`toolDir: ${toolDir}`);
             // /opt/hostedtools/java-zulu-21-jdk
 
@@ -69,14 +69,15 @@ async function run(): Promise<void> {
     }
 }
 
-function setEnvironment(dir: string) {
-    // Point JAVA_HOME to the extracted folder (assumes single folder inside)
-    const javaHome = fs.readdirSync(dir).length === 1
-        ? path.join(dir, fs.readdirSync(dir)[0])
-        : dir;
+function setEnvironment(dir: string): void {
+    const determineJavaHome = (folderPath: string): string => {
+        const subDirectories = fs.readdirSync(folderPath);
+        return subDirectories.length === 1 ? path.join(folderPath, subDirectories[0]) : folderPath;
+    };
 
-    core.exportVariable('JAVA_HOME', javaHome);
-    core.addPath(path.join(javaHome, 'bin'));
+    const javaHomePath = determineJavaHome(dir);
+    core.exportVariable('JAVA_HOME', javaHomePath);
+    core.addPath(path.join(javaHomePath, 'bin'));
 }
 
 function getDownloadUrl(
@@ -88,7 +89,8 @@ function getDownloadUrl(
         case 'temurin':
             return `https://api.adoptium.net/v3/binary/latest/${version}/ga/linux/x64/${pkg}/hotspot/normal/eclipse`;
         case 'zulu':
-            return `https://cdn.azul.com/zulu/bin/zulu${version}.42.19-ca-${pkg}${version}.0.7-linux_x64.tar.gz`;
+            // return `https://cdn.azul.com/zulu/bin/zulu${version}.42.19-ca-${pkg}${version}.0.7-linux_x64.tar.gz`;
+            return `https://cdn.azul.com/zulu/bin/zulu${version}.80.21-ca-${pkg}${version}.0.27-linux_x64.tar.gz`
         case 'oracle':
             throw new Error('Oracle JDK requires manual license acceptance and cannot be downloaded directly.');
         default:
