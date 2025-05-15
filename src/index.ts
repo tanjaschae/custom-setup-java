@@ -39,6 +39,7 @@ async function run(): Promise<void> {
 
 
                 core.info(`Java extracted to ${extractPath}`);
+                await exec.exec('ls', ['-la', toolDir]);
                 // Save to cache
                 await cache.saveCache([toolDir], cacheKey);
                 core.info(`Cached Java at key: ${cacheKey}`);
