@@ -66142,7 +66142,8 @@ async function extractArchive(archivePath, toolDir) {
     switch (true) {
         case lowerPath.endsWith('.tar.gz'):
         case lowerPath.endsWith('.tgz'):
-            return await tc.extractTar(archivePath, toolDir);
+            // return await tc.extractTar(archivePath, toolDir);
+            return await tc.extractTar(archivePath);
         case ext === '.zip':
             return await tc.extractZip(archivePath, toolDir);
         default:
