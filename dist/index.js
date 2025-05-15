@@ -66153,6 +66153,8 @@ async function downloadJava(downloadUrl, toolDir) {
     const extension = getArchiveExtension(downloadUrl);
     const tempFile = node_path_1.default.join(toolDir, `java-${Date.now()}${extension}`);
     const downloadPath = await tc.downloadTool(downloadUrl, tempFile);
+    core.info(`Download into ${downloadPath}`);
+    exec.exec("ls", ["-la", downloadPath]);
     return downloadPath;
 }
 function getArchiveExtension(url) {

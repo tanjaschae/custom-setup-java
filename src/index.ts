@@ -22,7 +22,7 @@ async function run(): Promise<void> {
 
             const cacheKey = `java-${distribution}-${version}-${pkg}`;
             const toolDir = path.join(process.env['RUNNER_TOOL_CACHE'] || '/tmp');
-            core.info(`toolDir: ${toolDir}`)
+            core.info(`toolDir: ${toolDir}`);
             // const toolDir = process.env['RUNNER_TOOL_CACHE'];
             // Try to restore from cache
             const cacheHit = await cache.restoreCache([toolDir], cacheKey);
@@ -114,6 +114,8 @@ async  function downloadJava(downloadUrl: string, toolDir: string): Promise<stri
     const extension = getArchiveExtension(downloadUrl);
     const tempFile = path.join(toolDir, `java-${Date.now()}${extension}`);
     const downloadPath = await tc.downloadTool(downloadUrl, tempFile);
+    core.info(`Download into ${downloadPath}`);
+    exec.exec("ls", ["-la", downloadPath]);
     return downloadPath;
 }
 
