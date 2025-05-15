@@ -47,7 +47,7 @@ async function run(): Promise<void> {
                 await cache.saveCache([extractPath], cacheKey);
                 core.info(`Cached Java at key: ${cacheKey}`);
 
-                setEnvironment(toolDir);
+                setEnvironment(extractPath);
             }
 
 

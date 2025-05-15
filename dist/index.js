@@ -66098,7 +66098,7 @@ async function run() {
                 // Save to cache
                 await cache.saveCache([extractPath], cacheKey);
                 core.info(`Cached Java at key: ${cacheKey}`);
-                setEnvironment(toolDir);
+                setEnvironment(extractPath);
             }
             await exec.exec('java', ['-version']);
             core.info('Java is set up and verified.');
