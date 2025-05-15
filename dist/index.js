@@ -66142,7 +66142,7 @@ async function extractArchive(archivePath, toolDir) {
         case lowerPath.endsWith('.tgz'):
             return await tc.extractTar(archivePath);
         case ext === '.zip':
-            return await tc.extractZip(archivePath, toolDir);
+            return await tc.extractZip(archivePath);
         default:
             throw new Error(`Unsupported archive format: ${ext}`);
     }
