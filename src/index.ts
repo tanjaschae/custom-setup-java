@@ -98,7 +98,7 @@ async function extractArchive(archivePath: string, toolDir: string): Promise<str
     switch (true) {
         case lowerPath.endsWith('.tar.gz'):
         case lowerPath.endsWith('.tgz'):
-            return await tc.extractTar(archivePath, toolDir);
+            return await tc.extractTar(archivePath);
 
         case ext === '.zip':
             return await tc.extractZip(archivePath, toolDir);
@@ -112,7 +112,7 @@ async  function downloadJava(downloadUrl: string, toolDir: string): Promise<stri
     const extension = getArchiveExtension(downloadUrl);
     const tempFile = path.join(toolDir, `java-${Date.now()}${extension}`);
     const downloadPath = await tc.downloadTool(downloadUrl, tempFile);
-    return downloadPath
+    return downloadPath;
 }
 
 function getArchiveExtension(url: string): string {
