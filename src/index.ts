@@ -24,7 +24,6 @@ async function run(): Promise<void> {
             const cacheKey = `java-${distribution}-${version}-${pkg}`;
             const toolDir = path.join(runnerToolCache, cacheKey);
             core.info(`toolDir: ${toolDir}`);
-            // /opt/hostedtools/java-zulu-21-jdk
 
             // Try to restore from cache
             const cacheHit = await cache.restoreCache([toolDir], cacheKey);
@@ -116,12 +115,54 @@ async function extractArchive(archivePath: string, toolDir: string): Promise<str
     }
 }
 
-async  function downloadJava(downloadUrl: string, toolDir: string): Promise<string> {
-    const extension = getArchiveExtension(downloadUrl);
+/**
+ * Downloads a Java archive from the given URL into the specified directory.
+ * @param downloadUrl - The URL to download the Java archive.
+ * @param toolDir - The directory to which the Java archive will be temporarily stored.
+ * @returns The path to the downloaded file.
+ * @throws Error if the download fails or the archive type is unsupported.
+ */
+async function downloadJava(downloadUrl: string, toolDir: string): Promise<string> {
+    // Ensure the download URL is valid
+    try {
+        new URL(downloadUrl);
+    } catch {
+        throw new Error(`Invalid URL provided: ${downloadUrl}`);
+    }
+
+    // Determine the archive file extension
+    let extension: string;
+    try {
+        extension = getArchiveExtension(downloadUrl);
+    } catch (err) {
+        core.setFailed(`Unsupported archive extension in URL: ${downloadUrl}`);
+        throw err;
+    }
+
+    // Temporary file path
     const tempFile = path.join(toolDir, `java-${Date.now()}${extension}`);
-    const downloadPath = await tc.downloadTool(downloadUrl, tempFile);
-    core.info(`Download into ${downloadPath}`);
-    exec.exec("ls", ["-la", downloadPath]);
+    core.info(`Downloading file to: ${tempFile}`);
+
+    let downloadPath = '';
+    try {
+        downloadPath = await tc.downloadTool(downloadUrl, tempFile);
+        core.info(`Download successful: ${downloadPath}`);
+    } catch (err) {
+        core.setFailed(`Failed to download file from ${downloadUrl}: ${(err as Error).message}`);
+        throw err;
+    }
+
+    // Validate the file exists and log its details
+    try {
+        const exitCode: Number = await exec.exec('ls', ['-la', downloadPath]);
+        if (exitCode !== 0) {
+            throw new Error(`Download file does not exist or is inaccessible: ${downloadPath}`);
+        }
+    } catch (err) {
+        core.setFailed(`Error during file verification: ${(err as Error).message}`);
+        throw err;
+    }
+
     return downloadPath;
 }
 
