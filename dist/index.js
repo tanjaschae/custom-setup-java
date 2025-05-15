@@ -66081,6 +66081,7 @@ async function run() {
             const cacheHit = await cache.restoreCache([toolDir], cacheKey);
             if (cacheHit) {
                 core.info(`Restored Java from cache: ${toolDir}`);
+                setEnvironment(toolDir);
             }
             else {
                 // Download and extract
@@ -66094,13 +66095,8 @@ async function run() {
                 // Save to cache
                 await cache.saveCache([toolDir], cacheKey);
                 core.info(`Cached Java at key: ${cacheKey}`);
+                setEnvironment(extractPath);
             }
-            // Point JAVA_HOME to the extracted folder (assumes single folder inside)
-            const javaHome = fs.readdirSync(toolDir).length === 1
-                ? node_path_1.default.join(toolDir, fs.readdirSync(toolDir)[0])
-                : toolDir;
-            core.exportVariable('JAVA_HOME', javaHome);
-            core.addPath(node_path_1.default.join(javaHome, 'bin'));
             await exec.exec('java', ['-version']);
             core.info('Java is set up and verified.');
         }
@@ -66116,6 +66112,14 @@ async function run() {
         if (error instanceof Error)
             core.setFailed(error.message);
     }
+}
+function setEnvironment(dir) {
+    // Point JAVA_HOME to the extracted folder (assumes single folder inside)
+    const javaHome = fs.readdirSync(dir).length === 1
+        ? node_path_1.default.join(dir, fs.readdirSync(dir)[0])
+        : dir;
+    core.exportVariable('JAVA_HOME', javaHome);
+    core.addPath(node_path_1.default.join(javaHome, 'bin'));
 }
 function getDownloadUrl(distribution, version, pkg) {
     switch (distribution) {
