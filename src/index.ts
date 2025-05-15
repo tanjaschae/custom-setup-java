@@ -44,7 +44,7 @@ async function run(): Promise<void> {
                 await cache.saveCache([toolDir], cacheKey);
                 core.info(`Cached Java at key: ${cacheKey}`);
 
-                setEnvironment(extractPath);
+                setEnvironment(toolDir);
             }
 
 
@@ -98,10 +98,10 @@ async function extractArchive(archivePath: string, toolDir: string): Promise<str
     switch (true) {
         case lowerPath.endsWith('.tar.gz'):
         case lowerPath.endsWith('.tgz'):
-            return await tc.extractTar(archivePath);
+            return await tc.extractTar(archivePath, toolDir);
 
         case ext === '.zip':
-            return await tc.extractZip(archivePath);
+            return await tc.extractZip(archivePath, toolDir);
 
         default:
             throw new Error(`Unsupported archive format: ${ext}`);

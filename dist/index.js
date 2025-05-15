@@ -66096,7 +66096,7 @@ async function run() {
                 // Save to cache
                 await cache.saveCache([toolDir], cacheKey);
                 core.info(`Cached Java at key: ${cacheKey}`);
-                setEnvironment(extractPath);
+                setEnvironment(toolDir);
             }
             await exec.exec('java', ['-version']);
             core.info('Java is set up and verified.');
@@ -66140,9 +66140,9 @@ async function extractArchive(archivePath, toolDir) {
     switch (true) {
         case lowerPath.endsWith('.tar.gz'):
         case lowerPath.endsWith('.tgz'):
-            return await tc.extractTar(archivePath);
+            return await tc.extractTar(archivePath, toolDir);
         case ext === '.zip':
-            return await tc.extractZip(archivePath);
+            return await tc.extractZip(archivePath, toolDir);
         default:
             throw new Error(`Unsupported archive format: ${ext}`);
     }
