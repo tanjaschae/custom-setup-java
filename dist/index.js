@@ -66094,7 +66094,7 @@ async function run() {
                 // const extractPath = await tc.extractTar(archivePath, toolDir);
                 const extractPath = await extractArchive(archivePath, toolDir);
                 core.info(`Java extracted to ${extractPath}`);
-                await exec.exec('ls', ['-la', toolDir]);
+                await exec.exec('ls', ['-la', extractPath]);
                 // Save to cache
                 await cache.saveCache([extractPath], cacheKey);
                 core.info(`Cached Java at key: ${cacheKey}`);
