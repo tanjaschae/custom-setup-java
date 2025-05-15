@@ -5,6 +5,7 @@ import * as exec from '@actions/exec';
 import {isAllowed} from "./allowedInput";
 import path from "node:path";
 import * as fs from "node:fs";
+import { promises as fsPromises } from 'fs';
 
 async function run(): Promise<void> {
 
@@ -37,12 +38,13 @@ async function run(): Promise<void> {
                 core.info(`Download URL: ${downloadUrl}`);
                 const archivePath = await downloadJava(downloadUrl, toolDir);
                 core.info(`archivePath: ${archivePath}`);
-                // const extractPath = await tc.extractTar(archivePath, toolDir);
                 const extractPath = await extractArchive(archivePath, toolDir);
 
 
                 core.info(`Java extracted to ${extractPath}`);
                 await exec.exec('ls', ['-la', extractPath]);
+
+                await fsPromises.unlink(archivePath);
                 // Save to cache
                 await cache.saveCache([extractPath], cacheKey);
                 core.info(`Cached Java at key: ${cacheKey}`);
@@ -102,7 +104,7 @@ async function extractArchive(archivePath: string, toolDir: string): Promise<str
         case lowerPath.endsWith('.tar.gz'):
         case lowerPath.endsWith('.tgz'):
             // return await tc.extractTar(archivePath, toolDir);
-            return await tc.extractTar(archivePath);
+            return await tc.extractTar(archivePath, toolDir);
 
         case ext === '.zip':
             return await tc.extractZip(archivePath, toolDir);

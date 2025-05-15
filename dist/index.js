@@ -66065,6 +66065,7 @@ const exec = __importStar(__nccwpck_require__(5236));
 const allowedInput_1 = __nccwpck_require__(8795);
 const node_path_1 = __importDefault(__nccwpck_require__(6760));
 const fs = __importStar(__nccwpck_require__(3024));
+const fs_1 = __nccwpck_require__(9896);
 async function run() {
     try {
         const version = core.getInput('java-version');
@@ -66091,10 +66092,10 @@ async function run() {
                 core.info(`Download URL: ${downloadUrl}`);
                 const archivePath = await downloadJava(downloadUrl, toolDir);
                 core.info(`archivePath: ${archivePath}`);
-                // const extractPath = await tc.extractTar(archivePath, toolDir);
                 const extractPath = await extractArchive(archivePath, toolDir);
                 core.info(`Java extracted to ${extractPath}`);
                 await exec.exec('ls', ['-la', extractPath]);
+                await fs_1.promises.unlink(archivePath);
                 // Save to cache
                 await cache.saveCache([extractPath], cacheKey);
                 core.info(`Cached Java at key: ${cacheKey}`);
@@ -66143,7 +66144,7 @@ async function extractArchive(archivePath, toolDir) {
         case lowerPath.endsWith('.tar.gz'):
         case lowerPath.endsWith('.tgz'):
             // return await tc.extractTar(archivePath, toolDir);
-            return await tc.extractTar(archivePath);
+            return await tc.extractTar(archivePath, toolDir);
         case ext === '.zip':
             return await tc.extractZip(archivePath, toolDir);
         default:
