@@ -66076,7 +66076,9 @@ async function run() {
             core.info(`Directory where tools are cached: ${process.env.RUNNER_TOOL_CACHE}`);
             core.info(`Path to the checked-out repo: ${process.env.GITHUB_WORKSPACE}`);
             const cacheKey = `java-${distribution}-${version}-${pkg}`;
-            const toolDir = node_path_1.default.join(process.env['RUNNER_TOOL_CACHE'] || '/tmp', cacheKey);
+            const toolDir = node_path_1.default.join(process.env['RUNNER_TOOL_CACHE'] || '/tmp');
+            core.info(`toolDir: ${toolDir}`);
+            // const toolDir = process.env['RUNNER_TOOL_CACHE'];
             // Try to restore from cache
             const cacheHit = await cache.restoreCache([toolDir], cacheKey);
             if (cacheHit) {
@@ -66090,11 +66092,11 @@ async function run() {
                 const archivePath = await downloadJava(downloadUrl, toolDir);
                 core.info(`archivePath: ${archivePath}`);
                 // const extractPath = await tc.extractTar(archivePath, toolDir);
-                const extractPath = await extractArchive(archivePath, toolDir);
+                const extractPath = await extractArchive(archivePath);
                 core.info(`Java extracted to ${extractPath}`);
                 await exec.exec('ls', ['-la', toolDir]);
                 // Save to cache
-                await cache.saveCache([toolDir], cacheKey);
+                await cache.saveCache([extractPath], cacheKey);
                 core.info(`Cached Java at key: ${cacheKey}`);
                 setEnvironment(toolDir);
             }
@@ -66134,15 +66136,15 @@ function getDownloadUrl(distribution, version, pkg) {
             throw new Error(`Unsupported distribution: ${distribution}`);
     }
 }
-async function extractArchive(archivePath, toolDir) {
+async function extractArchive(archivePath) {
     const ext = node_path_1.default.extname(archivePath).toLowerCase();
     const lowerPath = archivePath.toLowerCase();
     switch (true) {
         case lowerPath.endsWith('.tar.gz'):
         case lowerPath.endsWith('.tgz'):
-            return await tc.extractTar(archivePath, toolDir);
+            return await tc.extractTar(archivePath);
         case ext === '.zip':
-            return await tc.extractZip(archivePath, toolDir);
+            return await tc.extractZip(archivePath);
         default:
             throw new Error(`Unsupported archive format: ${ext}`);
     }

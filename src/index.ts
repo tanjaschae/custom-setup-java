@@ -21,7 +21,9 @@ async function run(): Promise<void> {
             core.info(`Path to the checked-out repo: ${process.env.GITHUB_WORKSPACE}`);
 
             const cacheKey = `java-${distribution}-${version}-${pkg}`;
-            const toolDir = path.join(process.env['RUNNER_TOOL_CACHE'] || '/tmp', cacheKey);
+            const toolDir = path.join(process.env['RUNNER_TOOL_CACHE'] || '/tmp');
+            core.info(`toolDir: ${toolDir}`)
+            // const toolDir = process.env['RUNNER_TOOL_CACHE'];
             // Try to restore from cache
             const cacheHit = await cache.restoreCache([toolDir], cacheKey);
 
@@ -35,13 +37,13 @@ async function run(): Promise<void> {
                 const archivePath = await downloadJava(downloadUrl, toolDir);
                 core.info(`archivePath: ${archivePath}`);
                 // const extractPath = await tc.extractTar(archivePath, toolDir);
-                const extractPath = await extractArchive(archivePath, toolDir);
+                const extractPath = await extractArchive(archivePath);
 
 
                 core.info(`Java extracted to ${extractPath}`);
                 await exec.exec('ls', ['-la', toolDir]);
                 // Save to cache
-                await cache.saveCache([toolDir], cacheKey);
+                await cache.saveCache([extractPath], cacheKey);
                 core.info(`Cached Java at key: ${cacheKey}`);
 
                 setEnvironment(toolDir);
@@ -91,17 +93,17 @@ function getDownloadUrl(
     }
 }
 
-async function extractArchive(archivePath: string, toolDir: string): Promise<string> {
+async function extractArchive(archivePath: string): Promise<string> {
     const ext = path.extname(archivePath).toLowerCase();
     const lowerPath = archivePath.toLowerCase();
 
     switch (true) {
         case lowerPath.endsWith('.tar.gz'):
         case lowerPath.endsWith('.tgz'):
-            return await tc.extractTar(archivePath, toolDir);
+            return await tc.extractTar(archivePath);
 
         case ext === '.zip':
-            return await tc.extractZip(archivePath, toolDir);
+            return await tc.extractZip(archivePath);
 
         default:
             throw new Error(`Unsupported archive format: ${ext}`);
