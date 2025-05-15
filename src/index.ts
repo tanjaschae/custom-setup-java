@@ -37,7 +37,7 @@ async function run(): Promise<void> {
                 const archivePath = await downloadJava(downloadUrl, toolDir);
                 core.info(`archivePath: ${archivePath}`);
                 // const extractPath = await tc.extractTar(archivePath, toolDir);
-                const extractPath = await extractArchive(archivePath);
+                const extractPath = await extractArchive(archivePath, toolDir);
 
 
                 core.info(`Java extracted to ${extractPath}`);
@@ -93,17 +93,17 @@ function getDownloadUrl(
     }
 }
 
-async function extractArchive(archivePath: string): Promise<string> {
+async function extractArchive(archivePath: string, toolDir: string): Promise<string> {
     const ext = path.extname(archivePath).toLowerCase();
     const lowerPath = archivePath.toLowerCase();
 
     switch (true) {
         case lowerPath.endsWith('.tar.gz'):
         case lowerPath.endsWith('.tgz'):
-            return await tc.extractTar(archivePath);
+            return await tc.extractTar(archivePath, toolDir);
 
         case ext === '.zip':
-            return await tc.extractZip(archivePath);
+            return await tc.extractZip(archivePath, toolDir);
 
         default:
             throw new Error(`Unsupported archive format: ${ext}`);

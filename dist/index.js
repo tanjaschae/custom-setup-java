@@ -66092,7 +66092,7 @@ async function run() {
                 const archivePath = await downloadJava(downloadUrl, toolDir);
                 core.info(`archivePath: ${archivePath}`);
                 // const extractPath = await tc.extractTar(archivePath, toolDir);
-                const extractPath = await extractArchive(archivePath);
+                const extractPath = await extractArchive(archivePath, toolDir);
                 core.info(`Java extracted to ${extractPath}`);
                 await exec.exec('ls', ['-la', toolDir]);
                 // Save to cache
@@ -66136,15 +66136,15 @@ function getDownloadUrl(distribution, version, pkg) {
             throw new Error(`Unsupported distribution: ${distribution}`);
     }
 }
-async function extractArchive(archivePath) {
+async function extractArchive(archivePath, toolDir) {
     const ext = node_path_1.default.extname(archivePath).toLowerCase();
     const lowerPath = archivePath.toLowerCase();
     switch (true) {
         case lowerPath.endsWith('.tar.gz'):
         case lowerPath.endsWith('.tgz'):
-            return await tc.extractTar(archivePath);
+            return await tc.extractTar(archivePath, toolDir);
         case ext === '.zip':
-            return await tc.extractZip(archivePath);
+            return await tc.extractZip(archivePath, toolDir);
         default:
             throw new Error(`Unsupported archive format: ${ext}`);
     }
