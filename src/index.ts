@@ -75,7 +75,7 @@ function getDownloadUrl(
         case 'temurin':
             return `https://api.adoptium.net/v3/binary/latest/${version}/ga/linux/x64/${pkg}/hotspot/normal/eclipse`;
         case 'zulu':
-            return `https://cdn.azul.com/zulu/bin/zulu${version}-ca-${pkg}.tar.gz`;
+            return `https://cdn.azul.com/zulu/bin/zulu${version}.42.19-ca-${pkg}${version}.0.7-linux_x64.tar.gz`;
         case 'oracle':
             throw new Error('Oracle JDK requires manual license acceptance and cannot be downloaded directly.');
         default:
