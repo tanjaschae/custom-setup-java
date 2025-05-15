@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "tsc",
     "build": "ncc build src/index.ts -o dist",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "clean": "rm -rf dist"
   },
   "keywords": [],
   "author": "",
