@@ -31,10 +31,11 @@ async function run(): Promise<void> {
                 // Download and extract
                 const downloadUrl = getDownloadUrl(distribution, version, pkg)
                 core.info(`Download URL: ${downloadUrl}`);
-                const archivePath = await tc.downloadTool(downloadUrl)
-                core.info(`archivePath: ${archivePath}`)
+                const archivePath = await downloadJava(downloadUrl, toolDir);
+                core.info(`archivePath: ${archivePath}`);
                 // const extractPath = await tc.extractTar(archivePath, toolDir);
-                const extractPath = await extractArchive(archivePath)
+                const extractPath = await extractArchive(archivePath, toolDir);
+
 
                 core.info(`Java extracted to ${extractPath}`);
                 // Save to cache
@@ -83,21 +84,39 @@ function getDownloadUrl(
     }
 }
 
-async function extractArchive(archivePath: string): Promise<string> {
+async function extractArchive(archivePath: string, toolDir: string): Promise<string> {
     const ext = path.extname(archivePath).toLowerCase();
     const lowerPath = archivePath.toLowerCase();
 
     switch (true) {
         case lowerPath.endsWith('.tar.gz'):
         case lowerPath.endsWith('.tgz'):
-            return await tc.extractTar(archivePath);
+            return await tc.extractTar(archivePath), toolDir;
 
         case ext === '.zip':
-            return await tc.extractZip(archivePath);
+            return await tc.extractZip(archivePath, toolDir);
 
         default:
             throw new Error(`Unsupported archive format: ${ext}`);
     }
+}
+
+async  function downloadJava(downloadUrl: string, toolDir: string): Promise<string> {
+    const extension = getArchiveExtension(downloadUrl);
+    const tempFile = path.join(toolDir, `java-${Date.now()}${extension}`);
+    const downloadPath = await tc.downloadTool(downloadUrl, tempFile);
+    return downloadPath
+}
+
+function getArchiveExtension(url: string): string {
+    const lowerUrl = url.toLowerCase();
+
+    if (lowerUrl.endsWith('.tar.gz')) return '.tar.gz';
+    if (lowerUrl.endsWith('.tgz')) return '.tgz';
+    if (lowerUrl.endsWith('.zip')) return '.zip';
+    if (lowerUrl.endsWith('.tar')) return '.tar';
+
+    throw new Error(`Unsupported archive type in URL: ${url}`);
 }
 
 
