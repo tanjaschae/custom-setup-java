@@ -1,6 +1,4 @@
-import * as core from '@actions/core';
-
-const allowedDistributions = {
+export const allowedDistributions = {
     version: ['11', '17', '21'] as const,
     distribution: ['temurin', 'oracle', 'zulu'] as const,
     package: ['jre', 'jdk'] as const,
@@ -30,27 +28,10 @@ function getAllowedValues<K extends AllowedDistributionKeys>(
  * @param group The group to validate the value against.
  * @returns `true` if the value is allowed, otherwise `false`.
  */
-function isAllowed<K extends AllowedDistributionKeys>(
+export function isAllowed<K extends AllowedDistributionKeys>(
     value: string,
     group: K
 ): value is AllowedDistributionValue<K> {
     const allowedList = getAllowedValues(group);
     return allowedList.includes(value);
-}
-
-export function validateInputs(): { version: string; distribution: string; pkg: string } {
-    const version = core.getInput('java-version');
-    const distribution = core.getInput('distribution', { required: true });
-    const pkg = core.getInput('java-package');
-
-    if (
-        !isAllowed(version, 'version') ||
-        !isAllowed(distribution, 'distribution') ||
-        !isAllowed(pkg, 'package')
-    ) {
-        throw new Error(`${version}, ${distribution}, ${pkg} is not a valid input`);
-    }
-
-    core.info(`${version} ${distribution} ${pkg} is a valid input`);
-    return { version, distribution, pkg };
 }

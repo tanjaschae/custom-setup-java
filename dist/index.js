@@ -65995,61 +65995,39 @@ module.exports = {
 
 /***/ }),
 
-/***/ 7031:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ 8795:
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.restoreFromCache = restoreFromCache;
-exports.saveToCache = saveToCache;
-const core = __importStar(__nccwpck_require__(7484));
-const cache = __importStar(__nccwpck_require__(5116));
-async function restoreFromCache(cacheKey) {
-    const runnerToolCache = process.env.RUNNER_TOOL_CACHE || '/tmp';
-    const toolDir = `${runnerToolCache}/${cacheKey}`;
-    if (await cache.restoreCache([toolDir], cacheKey)) {
-        core.info(`Restored cache for key: ${cacheKey}`);
-        return true;
+exports.allowedDistributions = void 0;
+exports.isAllowed = isAllowed;
+exports.allowedDistributions = {
+    version: ['11', '17', '21'],
+    distribution: ['temurin', 'oracle', 'zulu'],
+    package: ['jre', 'jdk'],
+};
+/**
+ * Helper function to retrieve the list of allowed values for a given group.
+ * @param group The group key from allowedDistributions.
+ * @returns The readonly array of allowed values for the given group.
+ */
+function getAllowedValues(group) {
+    if (!(group in exports.allowedDistributions)) {
+        throw new Error(`Invalid group: "${group}". Valid groups are ${Object.keys(exports.allowedDistributions).join(', ')}.`);
     }
-    return false;
+    return exports.allowedDistributions[group];
 }
-async function saveToCache(cacheKey, directory) {
-    await cache.saveCache([directory], cacheKey);
-    core.info(`Saved to cache with key: ${cacheKey}`);
+/**
+ * Validates if a given value belongs to the allowed list for a specified group.
+ * @param value The value to validate.
+ * @param group The group to validate the value against.
+ * @returns `true` if the value is allowed, otherwise `false`.
+ */
+function isAllowed(value, group) {
+    const allowedList = getAllowedValues(group);
+    return allowedList.includes(value);
 }
 
 
@@ -66093,176 +66071,83 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(7484));
-const input_validation_1 = __nccwpck_require__(431);
-const cache_manager_1 = __nccwpck_require__(7031);
-const java_utils_1 = __nccwpck_require__(7167);
-async function run() {
-    try {
-        const { version, distribution, pkg } = (0, input_validation_1.validateInputs)();
-        const cacheKey = `java-${distribution}-${version}-${pkg}`;
-        if (await (0, cache_manager_1.restoreFromCache)(cacheKey)) {
-            core.info('Java restored from cache.');
-        }
-        else {
-            const toolDir = await (0, java_utils_1.downloadAndExtractJava)(distribution, version, pkg);
-            await (0, cache_manager_1.saveToCache)(cacheKey, toolDir);
-            (0, java_utils_1.setEnvironment)(toolDir);
-        }
-    }
-    catch (error) {
-        core.setFailed(error instanceof Error ? error.message : 'An unknown error occurred');
-    }
-}
-run();
-
-
-/***/ }),
-
-/***/ 431:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.validateInputs = validateInputs;
-const core = __importStar(__nccwpck_require__(7484));
-const allowedDistributions = {
-    version: ['11', '17', '21'],
-    distribution: ['temurin', 'oracle', 'zulu'],
-    package: ['jre', 'jdk'],
-};
-/**
- * Helper function to retrieve the list of allowed values for a given group.
- * @param group The group key from allowedDistributions.
- * @returns The readonly array of allowed values for the given group.
- */
-function getAllowedValues(group) {
-    if (!(group in allowedDistributions)) {
-        throw new Error(`Invalid group: "${group}". Valid groups are ${Object.keys(allowedDistributions).join(', ')}.`);
-    }
-    return allowedDistributions[group];
-}
-/**
- * Validates if a given value belongs to the allowed list for a specified group.
- * @param value The value to validate.
- * @param group The group to validate the value against.
- * @returns `true` if the value is allowed, otherwise `false`.
- */
-function isAllowed(value, group) {
-    const allowedList = getAllowedValues(group);
-    return allowedList.includes(value);
-}
-function validateInputs() {
-    const version = core.getInput('java-version');
-    const distribution = core.getInput('distribution', { required: true });
-    const pkg = core.getInput('java-package');
-    if (!isAllowed(version, 'version') ||
-        !isAllowed(distribution, 'distribution') ||
-        !isAllowed(pkg, 'package')) {
-        throw new Error(`${version}, ${distribution}, ${pkg} is not a valid input`);
-    }
-    core.info(`${version} ${distribution} ${pkg} is a valid input`);
-    return { version, distribution, pkg };
-}
-
-
-/***/ }),
-
-/***/ 7167:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.downloadAndExtractJava = downloadAndExtractJava;
-exports.setEnvironment = setEnvironment;
 const core = __importStar(__nccwpck_require__(7484));
 const tc = __importStar(__nccwpck_require__(3472));
+const cache = __importStar(__nccwpck_require__(5116));
+const exec = __importStar(__nccwpck_require__(5236));
+const allowedInput_1 = __nccwpck_require__(8795);
 const node_path_1 = __importDefault(__nccwpck_require__(6760));
-const node_fs_1 = __importDefault(__nccwpck_require__(3024));
-async function downloadAndExtractJava(distribution, version, pkg) {
-    const downloadUrl = getDownloadUrl(distribution, version, pkg);
-    core.info(`Downloading Java from: ${downloadUrl}`);
-    const archivePath = await downloadJava(downloadUrl);
-    core.info(`Extracting Java from: ${archivePath}`);
-    return await extractArchive(archivePath);
+const fs = __importStar(__nccwpck_require__(3024));
+const fs_1 = __nccwpck_require__(9896);
+async function run() {
+    try {
+        const version = core.getInput('java-version');
+        const distribution = core.getInput('distribution', { required: true });
+        const pkg = core.getInput('java-package');
+        if ((0, allowedInput_1.isAllowed)(version, "version") && (0, allowedInput_1.isAllowed)(distribution, "distribution") && (0, allowedInput_1.isAllowed)(pkg, "package")) {
+            core.info(`${version.toUpperCase()} ${distribution.toUpperCase()} ${pkg.toUpperCase()} is a valid input`);
+            const os = process.env.RUNNER_OS;
+            const runnerToolCache = process.env.RUNNER_TOOL_CACHE || '/tmp';
+            core.info(`Directory where tools are cached: ${runnerToolCache}`);
+            const cacheKey = `java-${distribution}-${version}-${pkg}`;
+            const toolDir = node_path_1.default.join(runnerToolCache, cacheKey);
+            core.info(`toolDir: ${toolDir}`);
+            // Try to restore from cache
+            const cacheHit = await cache.restoreCache([toolDir], cacheKey);
+            if (cacheHit) {
+                core.info(`Restored Java from cache: ${toolDir}`);
+                setEnvironment(toolDir);
+            }
+            else {
+                // Download and extract
+                const downloadUrl = getDownloadUrl(distribution, version, pkg);
+                core.info(`Download URL: ${downloadUrl}`);
+                const archivePath = await downloadJava(downloadUrl, toolDir);
+                core.info(`archivePath: ${archivePath}`);
+                const extractPath = await extractArchive(archivePath, toolDir);
+                core.info(`Java extracted to ${extractPath}`);
+                await exec.exec('ls', ['-la', extractPath]);
+                await fs_1.promises.unlink(archivePath);
+                // Save to cache
+                await cache.saveCache([extractPath], cacheKey);
+                core.info(`Cached Java at key: ${cacheKey}`);
+                setEnvironment(extractPath);
+            }
+            await exec.exec('java', ['-version']);
+            core.info('Java is set up and verified.');
+        }
+        else {
+            core.info(`${version.toUpperCase()} ${distribution.toUpperCase()} ${pkg.toUpperCase()} is not a valid input`);
+        }
+        core.notice(`First try with ${version} ${distribution} ${pkg}`);
+        core.setOutput('distribution', distribution);
+        core.setOutput('version', version);
+        core.setOutput('path', "java/home/path");
+    }
+    catch (error) {
+        if (error instanceof Error)
+            core.setFailed(error.message);
+    }
+}
+function setEnvironment(dir) {
+    const determineJavaHome = (folderPath) => {
+        const subDirectories = fs.readdirSync(folderPath);
+        return subDirectories.length === 1 ? node_path_1.default.join(folderPath, subDirectories[0]) : folderPath;
+    };
+    const javaHomePath = determineJavaHome(dir);
+    core.exportVariable('JAVA_HOME', javaHomePath);
+    core.addPath(node_path_1.default.join(javaHomePath, 'bin'));
 }
 function getDownloadUrl(distribution, version, pkg) {
     switch (distribution) {
         case 'temurin':
             return `https://api.adoptium.net/v3/binary/latest/${version}/ga/linux/x64/${pkg}/hotspot/normal/eclipse`;
         case 'zulu':
+            // return `https://cdn.azul.com/zulu/bin/zulu${version}.42.19-ca-${pkg}${version}.0.7-linux_x64.tar.gz`;
             return `https://cdn.azul.com/zulu/bin/zulu${version}.80.21-ca-${pkg}${version}.0.27-linux_x64.tar.gz`;
         case 'oracle':
             throw new Error('Oracle JDK requires manual license acceptance and cannot be downloaded directly.');
@@ -66270,29 +66155,82 @@ function getDownloadUrl(distribution, version, pkg) {
             throw new Error(`Unsupported distribution: ${distribution}`);
     }
 }
-async function downloadJava(url) {
-    const tempPath = await tc.downloadTool(url);
-    core.info(`Java downloaded to: ${tempPath}`);
-    return tempPath;
-}
-async function extractArchive(archivePath) {
+async function extractArchive(archivePath, toolDir) {
     const ext = node_path_1.default.extname(archivePath).toLowerCase();
+    const lowerPath = archivePath.toLowerCase();
     switch (true) {
-        case ext === '.tgz' || ext === '.tar.gz':
-            return await tc.extractTar(archivePath);
+        case lowerPath.endsWith('.tar.gz'):
+        case lowerPath.endsWith('.tgz'):
+            // return await tc.extractTar(archivePath, toolDir);
+            return await tc.extractTar(archivePath, toolDir);
         case ext === '.zip':
-            return await tc.extractZip(archivePath);
+            return await tc.extractZip(archivePath, toolDir);
         default:
             throw new Error(`Unsupported archive format: ${ext}`);
     }
 }
-function setEnvironment(toolDir) {
-    const subDir = node_fs_1.default.readdirSync(toolDir)[0] || '';
-    const javaHome = node_path_1.default.join(toolDir, subDir);
-    core.exportVariable('JAVA_HOME', javaHome);
-    core.addPath(node_path_1.default.join(javaHome, 'bin'));
-    core.info(`JAVA_HOME set to: ${javaHome}`);
+/**
+ * Downloads a Java archive from the given URL into the specified directory.
+ * @param downloadUrl - The URL to download the Java archive.
+ * @param toolDir - The directory to which the Java archive will be temporarily stored.
+ * @returns The path to the downloaded file.
+ * @throws Error if the download fails or the archive type is unsupported.
+ */
+async function downloadJava(downloadUrl, toolDir) {
+    // Ensure the download URL is valid
+    try {
+        new URL(downloadUrl);
+    }
+    catch {
+        throw new Error(`Invalid URL provided: ${downloadUrl}`);
+    }
+    // Determine the archive file extension
+    let extension;
+    try {
+        extension = getArchiveExtension(downloadUrl);
+    }
+    catch (err) {
+        core.setFailed(`Unsupported archive extension in URL: ${downloadUrl}`);
+        throw err;
+    }
+    // Temporary file path
+    const tempFile = node_path_1.default.join(toolDir, `java-${Date.now()}${extension}`);
+    core.info(`Downloading file to: ${tempFile}`);
+    let downloadPath = '';
+    try {
+        downloadPath = await tc.downloadTool(downloadUrl, tempFile);
+        core.info(`Download successful: ${downloadPath}`);
+    }
+    catch (err) {
+        core.setFailed(`Failed to download file from ${downloadUrl}: ${err.message}`);
+        throw err;
+    }
+    // Validate the file exists and log its details
+    try {
+        const exitCode = await exec.exec('ls', ['-la', downloadPath]);
+        if (exitCode !== 0) {
+            throw new Error(`Download file does not exist or is inaccessible: ${downloadPath}`);
+        }
+    }
+    catch (err) {
+        core.setFailed(`Error during file verification: ${err.message}`);
+        throw err;
+    }
+    return downloadPath;
 }
+function getArchiveExtension(url) {
+    const lowerUrl = url.toLowerCase();
+    if (lowerUrl.endsWith('.tar.gz'))
+        return '.tar.gz';
+    if (lowerUrl.endsWith('.tgz'))
+        return '.tgz';
+    if (lowerUrl.endsWith('.zip'))
+        return '.zip';
+    if (lowerUrl.endsWith('.tar'))
+        return '.tar';
+    throw new Error(`Unsupported archive type in URL: ${url}`);
+}
+run();
 
 
 /***/ }),
