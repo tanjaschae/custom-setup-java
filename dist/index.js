@@ -66076,9 +66076,9 @@ async function run() {
             core.info(`Directory where tools are cached: ${process.env.RUNNER_TOOL_CACHE}`);
             core.info(`Path to the checked-out repo: ${process.env.GITHUB_WORKSPACE}`);
             const cacheKey = `java-${distribution}-${version}-${pkg}`;
-            const toolDir = node_path_1.default.join(process.env['RUNNER_TOOL_CACHE'] || '/tmp');
+            const toolDir = node_path_1.default.join(process.env['RUNNER_TOOL_CACHE'] || '/tmp', cacheKey);
             core.info(`toolDir: ${toolDir}`);
-            // const toolDir = process.env['RUNNER_TOOL_CACHE'];
+            // /opt/hostedtools/java-zulu-21-jdk
             // Try to restore from cache
             const cacheHit = await cache.restoreCache([toolDir], cacheKey);
             if (cacheHit) {

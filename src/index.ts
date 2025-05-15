@@ -21,9 +21,10 @@ async function run(): Promise<void> {
             core.info(`Path to the checked-out repo: ${process.env.GITHUB_WORKSPACE}`);
 
             const cacheKey = `java-${distribution}-${version}-${pkg}`;
-            const toolDir = path.join(process.env['RUNNER_TOOL_CACHE'] || '/tmp');
+            const toolDir = path.join(process.env['RUNNER_TOOL_CACHE'] || '/tmp', cacheKey);
             core.info(`toolDir: ${toolDir}`);
-            // const toolDir = process.env['RUNNER_TOOL_CACHE'];
+            // /opt/hostedtools/java-zulu-21-jdk
+
             // Try to restore from cache
             const cacheHit = await cache.restoreCache([toolDir], cacheKey);
 
