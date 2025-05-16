@@ -65995,44 +65995,6 @@ module.exports = {
 
 /***/ }),
 
-/***/ 8795:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.allowedDistributions = void 0;
-exports.isAllowed = isAllowed;
-exports.allowedDistributions = {
-    version: ['11', '17', '21'],
-    distribution: ['temurin', 'oracle', 'zulu'],
-    package: ['jre', 'jdk'],
-};
-/**
- * Helper function to retrieve the list of allowed values for a given group.
- * @param group The group key from allowedDistributions.
- * @returns The readonly array of allowed values for the given group.
- */
-function getAllowedValues(group) {
-    if (!(group in exports.allowedDistributions)) {
-        throw new Error(`Invalid group: "${group}". Valid groups are ${Object.keys(exports.allowedDistributions).join(', ')}.`);
-    }
-    return exports.allowedDistributions[group];
-}
-/**
- * Validates if a given value belongs to the allowed list for a specified group.
- * @param value The value to validate.
- * @param group The group to validate the value against.
- * @returns `true` if the value is allowed, otherwise `false`.
- */
-function isAllowed(value, group) {
-    const allowedList = getAllowedValues(group);
-    return allowedList.includes(value);
-}
-
-
-/***/ }),
-
 /***/ 9407:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -66079,7 +66041,7 @@ const core = __importStar(__nccwpck_require__(7484));
 const tc = __importStar(__nccwpck_require__(3472));
 const cache = __importStar(__nccwpck_require__(5116));
 const exec = __importStar(__nccwpck_require__(5236));
-const allowedInput_1 = __nccwpck_require__(8795);
+const inputs_validator_1 = __nccwpck_require__(3389);
 const node_path_1 = __importDefault(__nccwpck_require__(6760));
 const fs = __importStar(__nccwpck_require__(3024));
 const fs_1 = __nccwpck_require__(9896);
@@ -66088,7 +66050,7 @@ async function run() {
         const version = core.getInput('java-version');
         const distribution = core.getInput('distribution', { required: true });
         const pkg = core.getInput('java-package');
-        if ((0, allowedInput_1.isAllowed)(version, "version") && (0, allowedInput_1.isAllowed)(distribution, "distribution") && (0, allowedInput_1.isAllowed)(pkg, "package")) {
+        if ((0, inputs_validator_1.isAllowed)(version, "version") && (0, inputs_validator_1.isAllowed)(distribution, "distribution") && (0, inputs_validator_1.isAllowed)(pkg, "package")) {
             core.info(`${version.toUpperCase()} ${distribution.toUpperCase()} ${pkg.toUpperCase()} is a valid input`);
             const os = process.env.RUNNER_OS;
             const runnerToolCache = process.env.RUNNER_TOOL_CACHE || '/tmp';
@@ -66231,6 +66193,44 @@ function getArchiveExtension(url) {
     throw new Error(`Unsupported archive type in URL: ${url}`);
 }
 run();
+
+
+/***/ }),
+
+/***/ 3389:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.allowedDistributions = void 0;
+exports.isAllowed = isAllowed;
+exports.allowedDistributions = {
+    version: ['11', '17', '21'],
+    distribution: ['temurin', 'oracle', 'zulu'],
+    package: ['jre', 'jdk'],
+};
+/**
+ * Helper function to retrieve the list of allowed values for a given group.
+ * @param group The group key from allowedDistributions.
+ * @returns The readonly array of allowed values for the given group.
+ */
+function getAllowedValues(group) {
+    if (!(group in exports.allowedDistributions)) {
+        throw new Error(`Invalid group: "${group}". Valid groups are ${Object.keys(exports.allowedDistributions).join(', ')}.`);
+    }
+    return exports.allowedDistributions[group];
+}
+/**
+ * Validates if a given value belongs to the allowed list for a specified group.
+ * @param value The value to validate.
+ * @param group The group to validate the value against.
+ * @returns `true` if the value is allowed, otherwise `false`.
+ */
+function isAllowed(value, group) {
+    const allowedList = getAllowedValues(group);
+    return allowedList.includes(value);
+}
 
 
 /***/ }),

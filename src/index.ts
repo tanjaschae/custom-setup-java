@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import * as tc from '@actions/tool-cache';
 import * as cache from '@actions/cache';
 import * as exec from '@actions/exec';
-import {isAllowed} from "./allowedInput";
+import {isAllowed} from "./inputs-validator";
 import path from "node:path";
 import * as fs from "node:fs";
 import { promises as fsPromises } from 'fs';
