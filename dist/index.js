@@ -39630,7 +39630,7 @@ exports.colors = [6, 2, 3, 4, 5, 1];
 try {
 	// Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
 	// eslint-disable-next-line import/no-extraneous-dependencies
-	const supportsColor = __nccwpck_require__(75);
+	const supportsColor = __nccwpck_require__(1450);
 
 	if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
 		exports.colors = [
@@ -39861,6 +39861,22 @@ formatters.o = function (v) {
 formatters.O = function (v) {
 	this.inspectOpts.colors = this.useColors;
 	return util.inspect(v, this.inspectOpts);
+};
+
+
+/***/ }),
+
+/***/ 3813:
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = (flag, argv = process.argv) => {
+	const prefix = flag.startsWith('-') ? '' : (flag.length === 1 ? '-' : '--');
+	const position = argv.indexOf(prefix + flag);
+	const terminatorPosition = argv.indexOf('--');
+	return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
 };
 
 
@@ -43085,6 +43101,149 @@ function coerce (version, options) {
     '.' + (match[3] || '0') +
     '.' + (match[4] || '0'), options)
 }
+
+
+/***/ }),
+
+/***/ 1450:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+const os = __nccwpck_require__(857);
+const tty = __nccwpck_require__(2018);
+const hasFlag = __nccwpck_require__(3813);
+
+const {env} = process;
+
+let forceColor;
+if (hasFlag('no-color') ||
+	hasFlag('no-colors') ||
+	hasFlag('color=false') ||
+	hasFlag('color=never')) {
+	forceColor = 0;
+} else if (hasFlag('color') ||
+	hasFlag('colors') ||
+	hasFlag('color=true') ||
+	hasFlag('color=always')) {
+	forceColor = 1;
+}
+
+if ('FORCE_COLOR' in env) {
+	if (env.FORCE_COLOR === 'true') {
+		forceColor = 1;
+	} else if (env.FORCE_COLOR === 'false') {
+		forceColor = 0;
+	} else {
+		forceColor = env.FORCE_COLOR.length === 0 ? 1 : Math.min(parseInt(env.FORCE_COLOR, 10), 3);
+	}
+}
+
+function translateLevel(level) {
+	if (level === 0) {
+		return false;
+	}
+
+	return {
+		level,
+		hasBasic: true,
+		has256: level >= 2,
+		has16m: level >= 3
+	};
+}
+
+function supportsColor(haveStream, streamIsTTY) {
+	if (forceColor === 0) {
+		return 0;
+	}
+
+	if (hasFlag('color=16m') ||
+		hasFlag('color=full') ||
+		hasFlag('color=truecolor')) {
+		return 3;
+	}
+
+	if (hasFlag('color=256')) {
+		return 2;
+	}
+
+	if (haveStream && !streamIsTTY && forceColor === undefined) {
+		return 0;
+	}
+
+	const min = forceColor || 0;
+
+	if (env.TERM === 'dumb') {
+		return min;
+	}
+
+	if (process.platform === 'win32') {
+		// Windows 10 build 10586 is the first Windows release that supports 256 colors.
+		// Windows 10 build 14931 is the first release that supports 16m/TrueColor.
+		const osRelease = os.release().split('.');
+		if (
+			Number(osRelease[0]) >= 10 &&
+			Number(osRelease[2]) >= 10586
+		) {
+			return Number(osRelease[2]) >= 14931 ? 3 : 2;
+		}
+
+		return 1;
+	}
+
+	if ('CI' in env) {
+		if (['TRAVIS', 'CIRCLECI', 'APPVEYOR', 'GITLAB_CI', 'GITHUB_ACTIONS', 'BUILDKITE'].some(sign => sign in env) || env.CI_NAME === 'codeship') {
+			return 1;
+		}
+
+		return min;
+	}
+
+	if ('TEAMCITY_VERSION' in env) {
+		return /^(9\.(0*[1-9]\d*)\.|\d{2,}\.)/.test(env.TEAMCITY_VERSION) ? 1 : 0;
+	}
+
+	if (env.COLORTERM === 'truecolor') {
+		return 3;
+	}
+
+	if ('TERM_PROGRAM' in env) {
+		const version = parseInt((env.TERM_PROGRAM_VERSION || '').split('.')[0], 10);
+
+		switch (env.TERM_PROGRAM) {
+			case 'iTerm.app':
+				return version >= 3 ? 3 : 2;
+			case 'Apple_Terminal':
+				return 2;
+			// No default
+		}
+	}
+
+	if (/-256(color)?$/i.test(env.TERM)) {
+		return 2;
+	}
+
+	if (/^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(env.TERM)) {
+		return 1;
+	}
+
+	if ('COLORTERM' in env) {
+		return 1;
+	}
+
+	return min;
+}
+
+function getSupportLevel(stream) {
+	const level = supportsColor(stream, stream && stream.isTTY);
+	return translateLevel(level);
+}
+
+module.exports = {
+	supportsColor: getSupportLevel,
+	stdout: translateLevel(supportsColor(true, tty.isatty(1))),
+	stderr: translateLevel(supportsColor(true, tty.isatty(2)))
+};
 
 
 /***/ }),
@@ -66063,6 +66222,123 @@ async function saveToCache(cacheKey, directory) {
 
 /***/ }),
 
+/***/ 1302:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getDownloadUrl = getDownloadUrl;
+exports.downloadJava = downloadJava;
+exports.extractArchive = extractArchive;
+const node_path_1 = __importDefault(__nccwpck_require__(6760));
+const core = __importStar(__nccwpck_require__(7484));
+const tc = __importStar(__nccwpck_require__(3472));
+const exec = __importStar(__nccwpck_require__(5236));
+function getDownloadUrl(distribution, version, pkg) {
+    switch (distribution) {
+        case 'temurin':
+            return `https://api.adoptium.net/v3/binary/latest/${version}/ga/linux/x64/${pkg}/hotspot/normal/eclipse`;
+        case 'zulu':
+            return `https://cdn.azul.com/zulu/bin/zulu${version}.80.21-ca-${pkg}${version}.0.27-linux_x64.tar.gz`;
+        case 'oracle':
+            throw new Error('Oracle JDK requires manual license acceptance and cannot be downloaded directly.');
+        default:
+            throw new Error(`Unsupported distribution: ${distribution}`);
+    }
+}
+/**
+ * Downloads a Java archive from the given URL into the specified directory.
+ * @param downloadUrl - The URL to download the Java archive.
+ * @param toolDir - The directory to which the Java archive will be temporarily stored.
+ * @returns The path to the downloaded file.
+ * @throws Error if the download fails or the archive type is unsupported.
+ */
+async function downloadJava(downloadUrl, toolDir) {
+    let archivePath = '';
+    try {
+        const extension = getArchiveExtension(downloadUrl);
+        const tempFile = node_path_1.default.join(toolDir, `java-${Date.now()}${extension}`);
+        core.info(`Downloading file to: ${tempFile}`);
+        archivePath = await tc.downloadTool(downloadUrl, tempFile);
+        core.info(`Download successful: ${archivePath}`);
+    }
+    catch (err) {
+        core.setFailed(`Error during downloading java: ${err.message}`);
+        throw err;
+    }
+    // Validate the file exists and log its details
+    const exitCode = await exec.exec('ls', ['-la', archivePath]);
+    if (exitCode !== 0) {
+        throw new Error(`Download file does not exist or is inaccessible: ${archivePath}`);
+    }
+    return archivePath;
+}
+function getArchiveExtension(url) {
+    const lowerUrl = url.toLowerCase();
+    if (lowerUrl.endsWith('.tar.gz'))
+        return '.tar.gz';
+    if (lowerUrl.endsWith('.tgz'))
+        return '.tgz';
+    if (lowerUrl.endsWith('.zip'))
+        return '.zip';
+    if (lowerUrl.endsWith('.tar'))
+        return '.tar';
+    throw new Error(`Unsupported archive type in URL: ${url}`);
+}
+async function extractArchive(archivePath, toolDir) {
+    const ext = node_path_1.default.extname(archivePath).toLowerCase();
+    const lowerPath = archivePath.toLowerCase();
+    switch (true) {
+        case lowerPath.endsWith('.tar.gz'):
+        case lowerPath.endsWith('.tgz'):
+            return await tc.extractTar(archivePath, toolDir);
+        case ext === '.zip':
+            return await tc.extractZip(archivePath, toolDir);
+        default:
+            throw new Error(`Unsupported archive format: ${ext}`);
+    }
+}
+
+
+/***/ }),
+
 /***/ 9407:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -66264,85 +66540,21 @@ exports.downloadAndExtractJava = downloadAndExtractJava;
 exports.setEnvironment = setEnvironment;
 const node_path_1 = __importDefault(__nccwpck_require__(6760));
 const core = __importStar(__nccwpck_require__(7484));
-const tc = __importStar(__nccwpck_require__(3472));
 const exec = __importStar(__nccwpck_require__(5236));
 const node_fs_1 = __importDefault(__nccwpck_require__(3024));
 const fs_1 = __nccwpck_require__(9896);
+const helpers_1 = __nccwpck_require__(1302);
 async function downloadAndExtractJava(distribution, version, pkg, toolDir) {
-    const downloadUrl = getDownloadUrl(distribution, version, pkg);
+    const downloadUrl = (0, helpers_1.getDownloadUrl)(distribution, version, pkg);
     core.info(`Download URL: ${downloadUrl}`);
-    const archivePath = await downloadJava(downloadUrl, toolDir);
-    const extractPath = await extractArchive(archivePath, toolDir);
+    const archivePath = await (0, helpers_1.downloadJava)(downloadUrl, toolDir);
+    const extractPath = await (0, helpers_1.extractArchive)(archivePath, toolDir);
     core.info(`Java extracted to ${extractPath}`);
     // check with ls -la
     await exec.exec('ls', ['-la', extractPath]);
     // remove tar.gz or zip files
     await fs_1.promises.unlink(archivePath);
     return extractPath;
-}
-function getDownloadUrl(distribution, version, pkg) {
-    switch (distribution) {
-        case 'temurin':
-            return `https://api.adoptium.net/v3/binary/latest/${version}/ga/linux/x64/${pkg}/hotspot/normal/eclipse`;
-        case 'zulu':
-            return `https://cdn.azul.com/zulu/bin/zulu${version}.80.21-ca-${pkg}${version}.0.27-linux_x64.tar.gz`;
-        case 'oracle':
-            throw new Error('Oracle JDK requires manual license acceptance and cannot be downloaded directly.');
-        default:
-            throw new Error(`Unsupported distribution: ${distribution}`);
-    }
-}
-/**
- * Downloads a Java archive from the given URL into the specified directory.
- * @param downloadUrl - The URL to download the Java archive.
- * @param toolDir - The directory to which the Java archive will be temporarily stored.
- * @returns The path to the downloaded file.
- * @throws Error if the download fails or the archive type is unsupported.
- */
-async function downloadJava(downloadUrl, toolDir) {
-    let archivePath = '';
-    try {
-        const extension = getArchiveExtension(downloadUrl);
-        const tempFile = node_path_1.default.join(toolDir, `java-${Date.now()}${extension}`);
-        core.info(`Downloading file to: ${tempFile}`);
-        archivePath = await tc.downloadTool(downloadUrl, tempFile);
-        core.info(`Download successful: ${archivePath}`);
-    }
-    catch (err) {
-        core.setFailed(`Error during downloading java: ${err.message}`);
-        throw err;
-    }
-    // Validate the file exists and log its details
-    const exitCode = await exec.exec('ls', ['-la', archivePath]);
-    if (exitCode !== 0) {
-        throw new Error(`Download file does not exist or is inaccessible: ${archivePath}`);
-    }
-    return archivePath;
-}
-function getArchiveExtension(url) {
-    const lowerUrl = url.toLowerCase();
-    if (lowerUrl.endsWith('.tar.gz'))
-        return '.tar.gz';
-    if (lowerUrl.endsWith('.tgz'))
-        return '.tgz';
-    if (lowerUrl.endsWith('.zip'))
-        return '.zip';
-    if (lowerUrl.endsWith('.tar'))
-        return '.tar';
-    throw new Error(`Unsupported archive type in URL: ${url}`);
-}
-async function extractArchive(archivePath, toolDir) {
-    const ext = node_path_1.default.extname(archivePath).toLowerCase();
-    const lowerPath = archivePath.toLowerCase();
-    switch (true) {
-        case lowerPath.endsWith('.tar.gz'):
-        case lowerPath.endsWith('.tgz'):
-            return await tc.extractTar(archivePath, toolDir);
-        case ext === '.zip':
-            return await tc.extractZip(archivePath, toolDir);
-        default:
-            throw new Error(`Unsupported archive format: ${ext}`);
-    }
 }
 function setEnvironment(dir) {
     // Point JAVA_HOME to the extracted folder (assumes single folder inside)
@@ -66353,14 +66565,6 @@ function setEnvironment(dir) {
     core.addPath(node_path_1.default.join(javaHome, 'bin'));
     core.setOutput('path', javaHome);
 }
-
-
-/***/ }),
-
-/***/ 75:
-/***/ ((module) => {
-
-module.exports = eval("require")("supports-color");
 
 
 /***/ }),

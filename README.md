@@ -25,8 +25,14 @@ npx tsc --init --rootDir src --outDir dist --target ES2020 --module commonjs --s
 ```bash
 npx tsc
 ```
-
 npx ensures that you're using the local version of TypeScript (from node_modules) instead of a global one.
+
+5. Install and initialize Jest with TypeScript
+
+```bash
+npm install --save-dev jest ts-jest @types/jest typescript
+npx ts-jest config:init
+```
 
 This avoids version conflicts and makes your project more portable and predictable.
 
