@@ -66383,19 +66383,23 @@ const exec = __importStar(__nccwpck_require__(5236));
 const inputs_validator_1 = __nccwpck_require__(3389);
 const java_utils_1 = __nccwpck_require__(7167);
 const cache_manager_1 = __nccwpck_require__(7031);
+const truststore_manager_1 = __nccwpck_require__(4050);
 async function run() {
     try {
+        // helper for tests only
+        const ca = await (0, truststore_manager_1.generateRootCA)();
         const { version, distribution, pkg } = (0, inputs_validator_1.validateInputs)();
         const cacheKey = `java-${distribution}-${version}-${pkg}`;
         const result = await (0, cache_manager_1.restoreFromCache)(cacheKey);
-        if (result.cacheHit) {
-            (0, java_utils_1.setEnvironment)(result.toolDir);
-        }
-        else {
+        let javaHome = (0, java_utils_1.setEnvironment)(result.toolDir);
+        if (!result.cacheHit) {
             const extractPath = await (0, java_utils_1.downloadAndExtractJava)(distribution, version, pkg, result.toolDir);
             await (0, cache_manager_1.saveToCache)(cacheKey, extractPath);
-            (0, java_utils_1.setEnvironment)(extractPath);
+            javaHome = (0, java_utils_1.setEnvironment)(extractPath);
         }
+        const truststorePath = await (0, truststore_manager_1.importRootCA)(ca.cert);
+        await (0, truststore_manager_1.listJavaTruststore)(truststorePath, "changeit");
+        core.setOutput('path', javaHome);
         core.setOutput('distribution', distribution);
         core.setOutput('version', version);
         await exec.exec('java', ['-version']);
@@ -66563,7 +66567,110 @@ function setEnvironment(dir) {
         : dir;
     core.exportVariable('JAVA_HOME', javaHome);
     core.addPath(node_path_1.default.join(javaHome, 'bin'));
-    core.setOutput('path', javaHome);
+    return javaHome;
+}
+
+
+/***/ }),
+
+/***/ 4050:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.generateRootCA = generateRootCA;
+exports.importRootCA = importRootCA;
+exports.listJavaTruststore = listJavaTruststore;
+const exec = __importStar(__nccwpck_require__(5236));
+const path = __importStar(__nccwpck_require__(6928));
+const core = __importStar(__nccwpck_require__(7484));
+const fs = __importStar(__nccwpck_require__(9896));
+const CERT_DIR = '/tmp/ca';
+const KEY_PATH = path.join(CERT_DIR, 'rootCA.key');
+const CERT_PATH = path.join(CERT_DIR, 'rootCA.pem');
+async function generateRootCA() {
+    // 1. Create output directory
+    await exec.exec('mkdir', ['-p', CERT_DIR]);
+    // 2. Generate private key
+    await exec.exec('openssl', [
+        'genrsa', '-out', KEY_PATH, '2048'
+    ]);
+    // 3. Generate self-signed root certificate
+    await exec.exec('openssl', [
+        'req',
+        '-x509',
+        '-new',
+        '-nodes',
+        '-key', KEY_PATH,
+        '-sha256',
+        '-days', '365',
+        '-out', CERT_PATH,
+        '-subj', '/C=DE/ST=Berlin/L=Berlin/O=MyOrg/CN=MyRootCA'
+    ]);
+    console.log(`✅ Root CA created: ${CERT_PATH}`);
+    return { key: KEY_PATH, cert: CERT_PATH };
+}
+async function importRootCA(certPath, alias = 'custom-root-ca') {
+    const javaHome = process.env['JAVA_HOME'];
+    if (!javaHome) {
+        throw new Error('JAVA_HOME is not set');
+    }
+    const truststorePath = path.join(javaHome, 'lib', 'security', 'cacerts');
+    if (!fs.existsSync(certPath)) {
+        throw new Error(`Certificate file not found at path: ${certPath}`);
+    }
+    core.info(`Importing ${certPath} to Java truststore at ${truststorePath}`);
+    await exec.exec('keytool', [
+        '-importcert',
+        '-noprompt',
+        '-trustcacerts',
+        '-alias', alias,
+        '-file', certPath,
+        '-keystore', truststorePath,
+        '-storepass', 'changeit' // default password for cacerts
+    ]);
+    return truststorePath;
+}
+async function listJavaTruststore(jksPath, password) {
+    await exec.exec('keytool', [
+        '-list',
+        '-keystore', jksPath,
+        '-storepass', password
+    ]);
 }
 
 

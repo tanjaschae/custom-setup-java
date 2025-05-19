@@ -37,5 +37,5 @@ export function setEnvironment(dir: string) {
     core.exportVariable('JAVA_HOME', javaHome);
     core.addPath(path.join(javaHome, 'bin'));
 
-    core.setOutput('path', javaHome)
+    return javaHome;
 }
