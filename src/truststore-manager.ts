@@ -61,9 +61,5 @@ export async function importRootCA(certPath: string, alias = 'custom-root-ca') {
 }
 
 export async function listJavaTruststore(jksPath: string, password: string) {
-    await exec.exec('keytool', [
-        '-list',
-        '-keystore', jksPath,
-        '-storepass', password
-    ]);
+    await exec.exec('bash', ['-c', `keytool -list -keystore "${jksPath}" -storepass "${password}" | grep 'custom-root-ca'`]);
 }
