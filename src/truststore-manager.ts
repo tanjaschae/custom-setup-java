@@ -64,3 +64,21 @@ export async function listJavaTruststore(jksPath: string, password: string) {
     // await exec.exec('bash', ['-c', `keytool -list -keystore "${jksPath}" -storepass "${password}" | grep 'custom-root-ca'`]);
     await exec.exec('bash', ['-c', `keytool -list -cacerts -storepass "${password}" | grep 'custom-root-ca'`]);
 }
+
+export async function checkRootCaInTruststore(alias: string) {
+    const javaHome = process.env['JAVA_HOME'];
+    if (!javaHome) {
+        throw new Error('JAVA_HOME is not set');
+    }
+
+    core.info(`JAVA_HOME ${javaHome} is set up and verified.`);
+    const truststorePath = path.join(javaHome, 'lib', 'security', 'cacerts');
+    await exec.exec(
+        'keytool', [
+            '-list',
+            '-keystore', truststorePath,
+            '-alias', alias,
+            '-storepass', 'changeit'
+        ]
+    )
+}
