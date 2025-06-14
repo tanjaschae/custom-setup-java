@@ -10,17 +10,58 @@ permissions:
   contents: write
   pull-requests: write
 
-concurrency:
-  group: dependabot-auto-merge-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: false
-
 jobs:
+  check_context:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Checkout with ref ${{ github.sha }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: watch previous run
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: github.run_number > 1
+        shell: bash
+        run: |
+          WORKFLOW_NAME="Dependabot auto-merges"
+          # Get current run number
+          current_run_number=${{ github.run_number }}
+        
+          # Search for earlier in-progress run of this workflow
+          previous_run_in_progress=$(gh run list --workflow "$workflow_name" --limit 50 --json databaseId,number,status --jq \
+          ".[] | select(.number < $current_run_number and .status == \"in_progress\") | .databaseId" | head -n 1)
+          
+          if [ -z "$previous_run_in_progress" ]; then
+            echo "✅ No previous in-progress run found. Continuing."
+          else
+            max_wait=300  # 5 minutes
+            waited=0
+            
+            while true; do
+              status=$(gh run view "$previous_run_in_progress" --json status --jq '.status')
+              if [[ "$status" == "completed" ]]; then
+                echo "✅ Previous run completed."
+                break
+              fi
+              echo "⏳ Still waiting on run $previous_run_in_progress..."
+              sleep 10
+              waited=$((waited + 10))
+              if [ "$waited" -ge "$max_wait" ]; then
+                echo "❌ Timeout waiting on previous run."
+                exit 1
+              fi
+            done
+          fi
+
+
   fetch_metadata:
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
     outputs:
       package-ecosystem: ${{ steps.metadata.outputs.package-ecosystem }}
-      update-type: ${{ steps.metadata.outputs.update-type }}
     steps:
       - name: Dependabot metadata
         id: metadata
@@ -39,7 +80,6 @@ jobs:
         with:
           ref: ${{ github.sha }}
       - name: Setup Node
-        if: ${{ inputs.node_version }}
         uses: actions/setup-node@v4
         with:
           node-version: 18 # TODO
