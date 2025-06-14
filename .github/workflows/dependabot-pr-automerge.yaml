@@ -5,9 +5,6 @@ on:
     - opened
     - reopened
     - synchronize
-secrets:
-  DEPENDABOT_TOKEN:
-    required: true
 
 permissions:
   contents: write
