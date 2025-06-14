@@ -27,75 +27,75 @@ jobs:
           else
             echo "GH_TOKEN is set (value is hidden)"
           fi
-#      - name: watch previous run
-#        env:
-#          PR_URL: ${{ github.event.pull_request.html_url }}
-#          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
-#        if: github.run_number > 1
-#        shell: bash
-#        run: |
-#          WORKFLOW_NAME="Dependabot auto-merges"
-#          current_run_id=${{ github.run_id }}
-#
-#          # Find the databaseId of the most recent completed run before the current one
-#          previous_run=$(gh run list --workflow "$WORKFLOW_NAME" --json databaseId,id,status --jq \
-#          ".[] | select(.id < $current_run_id and .status == \"completed\") | .databaseId" | head -n 1)
-#
-#          gh run watch "$previous_run"
-#
-#  fetch_metadata:
-#    runs-on: ubuntu-latest
-#    needs:
-#      - check_context
-#    if: github.actor == 'dependabot[bot]'
-#    outputs:
-#      package-ecosystem: ${{ steps.metadata.outputs.package-ecosystem }}
-#      update-type: ${{ steps.metadata.outputs.update-type }}
-#    steps:
-#      - name: Dependabot metadata
-#        id: metadata
-#        uses: dependabot/fetch-metadata@v2
-#        with:
-#          github-token: ${{secrets.DEPENDABOT_TOKEN}}
-#
-#  automerge_github_actions_pull_request:
-#    runs-on: ubuntu-latest
-#    needs:
-#      - fetch_metadata
-#    if: ${{ github.actor == 'dependabot[bot]' && needs.fetch_metadata.outputs.package-ecosystem == 'github_actions' }}
-#    steps:
-#      - name: Merge PR for github_actions package-ecosystem
-#        env:
-#          PR_URL: ${{ github.event.pull_request.html_url }}
-#          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
-#        shell: bash
-#        run: gh pr merge --auto --merge "$PR_URL"
-#
-#  automerge_npm_pull_request:
-#    runs-on: ubuntu-latest
-#    needs:
-#      - fetch_metadata
-#    if: ${{ github.actor == 'dependabot[bot]' && needs.fetch_metadata.outputs.package-ecosystem == 'npm_and_yarn' && needs.fetch_metadata.outputs.update-type != 'version-update:semver-major' }}
-#    steps:
-#      - name: Checkout with ref ${{ github.sha }}
-#        uses: actions/checkout@v4
-#        with:
-#          ref: ${{ github.sha }}
-#      - name: Setup Node
-#        if: ${{ inputs.node_version }}
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: ${{ inputs.node_version }}
-#      - name: test
-#        shell: bash
-#        env:
-#          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
-#        run: |
-#          cd ${{ inputs.node_tests_path }} && npm install
-#          npm run test
-#      - name: Merge PR for npm package-ecosystem
-#        env:
-#          PR_URL: ${{ github.event.pull_request.html_url }}
-#          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
-#        shell: bash
-#        run: gh pr merge --auto --merge "$PR_URL"
+      - name: watch previous run
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
+        if: github.run_number > 1
+        shell: bash
+        run: |
+          WORKFLOW_NAME="Dependabot auto-merges"
+          current_run_id=${{ github.run_id }}
+
+          # Find the databaseId of the most recent completed run before the current one
+          previous_run=$(gh run list --workflow "$WORKFLOW_NAME" --json databaseId,id,status --jq \
+          ".[] | select(.id < $current_run_id and .status == \"completed\") | .databaseId" | head -n 1)
+
+          gh run watch "$previous_run"
+
+  fetch_metadata:
+    runs-on: ubuntu-latest
+    needs:
+      - check_context
+    if: github.actor == 'dependabot[bot]'
+    outputs:
+      package-ecosystem: ${{ steps.metadata.outputs.package-ecosystem }}
+      update-type: ${{ steps.metadata.outputs.update-type }}
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{secrets.DEPENDABOT_TOKEN}}
+
+  automerge_github_actions_pull_request:
+    runs-on: ubuntu-latest
+    needs:
+      - fetch_metadata
+    if: ${{ github.actor == 'dependabot[bot]' && needs.fetch_metadata.outputs.package-ecosystem == 'github_actions' }}
+    steps:
+      - name: Merge PR for github_actions package-ecosystem
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
+        shell: bash
+        run: gh pr merge --auto --merge "$PR_URL"
+
+  automerge_npm_pull_request:
+    runs-on: ubuntu-latest
+    needs:
+      - fetch_metadata
+    if: ${{ github.actor == 'dependabot[bot]' && needs.fetch_metadata.outputs.package-ecosystem == 'npm_and_yarn' && needs.fetch_metadata.outputs.update-type != 'version-update:semver-major' }}
+    steps:
+      - name: Checkout with ref ${{ github.sha }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Setup Node
+        if: ${{ inputs.node_version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+      - name: test
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
+        run: |
+          cd ${{ inputs.node_tests_path }} && npm install
+          npm run test
+      - name: Merge PR for npm package-ecosystem
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
+        shell: bash
+        run: gh pr merge --auto --merge "$PR_URL"
