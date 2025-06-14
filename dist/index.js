@@ -66615,6 +66615,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.generateRootCA = generateRootCA;
 exports.importRootCA = importRootCA;
 exports.listJavaTruststore = listJavaTruststore;
+exports.checkRootCaInTruststore = checkRootCaInTruststore;
 const exec = __importStar(__nccwpck_require__(5236));
 const path = __importStar(__nccwpck_require__(6928));
 const core = __importStar(__nccwpck_require__(7484));
@@ -66668,6 +66669,20 @@ async function importRootCA(certPath, alias = 'custom-root-ca') {
 async function listJavaTruststore(jksPath, password) {
     // await exec.exec('bash', ['-c', `keytool -list -keystore "${jksPath}" -storepass "${password}" | grep 'custom-root-ca'`]);
     await exec.exec('bash', ['-c', `keytool -list -cacerts -storepass "${password}" | grep 'custom-root-ca'`]);
+}
+async function checkRootCaInTruststore(alias) {
+    const javaHome = process.env['JAVA_HOME'];
+    if (!javaHome) {
+        throw new Error('JAVA_HOME is not set');
+    }
+    core.info(`JAVA_HOME ${javaHome} is set up and verified.`);
+    const truststorePath = path.join(javaHome, 'lib', 'security', 'cacerts');
+    await exec.exec('keytool', [
+        '-list',
+        '-keystore', truststorePath,
+        '-alias', alias,
+        '-storepass', 'changeit'
+    ]);
 }
 
 
