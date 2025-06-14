@@ -1,5 +1,9 @@
 name: Dependabot auto-merges
-on: pull_request
+on:
+  pull_request:
+    types:
+    - opened
+    - reopened
 secrets:
   DEPENDABOT_TOKEN:
     required: true
