@@ -31,10 +31,14 @@ jobs:
           current_run_number=${{ github.run_number }}
 
           # Find the databaseId of the most recent completed run before the current one
-          previous_run=$(gh run list --workflow "$WORKFLOW_NAME" --json databaseId,number,status --jq \
-          ".[] | select(.number < $current_run_number and .status == \"completed\") | .databaseId" | head -n 1)
+          previous_run_in_progress=$(gh run list --workflow "$WORKFLOW_NAME" --json databaseId,number,status --jq \
+          ".[] | select(.number < $current_run_number and .status == \"in_progress\") | .databaseId" | head -n 1)
           
-          gh run watch "$previous_run"
+          if [ -z "$previous_run_in_progress" ]; then
+              echo "No previous in-progress run found."
+          else
+            gh run watch "$previous_run"
+          fi
 
   fetch_metadata:
     runs-on: ubuntu-latest
