@@ -38,7 +38,7 @@ jobs:
           current_run_id=${{ github.run_id }}
 
           # Find the databaseId of the most recent completed run before the current one
-          gh run list --workflow "$WORKFLOW_NAME" --json databaseId,status
+          gh run list --workflow "$WORKFLOW_NAME" --json
 #          previous_run=$(gh run list --workflow "$WORKFLOW_NAME" --json databaseId,status --jq \
 #          ".[] | select(.id < $current_run_id and .status == \"completed\") | .databaseId" | head -n 1)
 
