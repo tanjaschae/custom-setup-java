@@ -10,40 +10,13 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: dependabot-auto-merge
+  cancel-in-progress: false
+
 jobs:
-  check_context:
-    runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]'
-    steps:
-      - name: Checkout with ref ${{ github.sha }}
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-      - name: watch previous run
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: github.run_number > 1
-        shell: bash
-        run: |
-          WORKFLOW_NAME="Dependabot auto-merges"
-          current_run_id=${{ github.run_id }}
-          current_run_number=${{ github.run_number }}
-
-          # Find the databaseId of the most recent completed run before the current one
-          previous_run_in_progress=$(gh run list --workflow "$WORKFLOW_NAME" --json databaseId,number,status --jq \
-          ".[] | select(.number < $current_run_number and .status == \"in_progress\") | .databaseId" | head -n 1)
-          
-          if [ -z "$previous_run_in_progress" ]; then
-              echo "No previous in-progress run found."
-          else
-            gh run watch "$previous_run"
-          fi
-
   fetch_metadata:
     runs-on: ubuntu-latest
-    needs:
-      - check_context
     if: github.actor == 'dependabot[bot]'
     outputs:
       package-ecosystem: ${{ steps.metadata.outputs.package-ecosystem }}
