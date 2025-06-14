@@ -15,22 +15,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
     steps:
-      - name: Checkout
+      - name: Checkout with ref ${{ github.sha }}
         uses: actions/checkout@v4
-      - name: Debug GH_TOKEN
-        env:
-          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
-        run: |
-          if [ -z "$GH_TOKEN" ]; then
-            echo "GH_TOKEN is NOT set"
-            exit 1
-          else
-            echo "GH_TOKEN is set (value is hidden)"
-          fi
+        with:
+          ref: ${{ github.sha }}
       - name: watch previous run
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: github.run_number > 1
         shell: bash
         run: |
@@ -58,7 +50,33 @@ jobs:
         uses: dependabot/fetch-metadata@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-#
+
+  automerge_npm_pull_request:
+    runs-on: ubuntu-latest
+    needs:
+      - fetch_metadata
+    if: ${{ github.actor == 'dependabot[bot]' && needs.fetch_metadata.outputs.package-ecosystem == 'npm_and_yarn' && needs.fetch_metadata.outputs.update-type != 'version-update:semver-major' }}
+    steps:
+      - name: Checkout with ref ${{ github.sha }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Setup Node
+        if: ${{ inputs.node_version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18 # TODO
+      - name: test
+        shell: bash
+        run: |
+          npm run test
+      - name: Merge PR for npm package-ecosystem
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
+        shell: bash
+        run: gh pr merge --auto --merge "$PR_URL"
+
 #  automerge_github_actions_pull_request:
 #    runs-on: ubuntu-latest
 #    needs:
@@ -66,35 +84,6 @@ jobs:
 #    if: ${{ github.actor == 'dependabot[bot]' && needs.fetch_metadata.outputs.package-ecosystem == 'github_actions' }}
 #    steps:
 #      - name: Merge PR for github_actions package-ecosystem
-#        env:
-#          PR_URL: ${{ github.event.pull_request.html_url }}
-#          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
-#        shell: bash
-#        run: gh pr merge --auto --merge "$PR_URL"
-#
-#  automerge_npm_pull_request:
-#    runs-on: ubuntu-latest
-#    needs:
-#      - fetch_metadata
-#    if: ${{ github.actor == 'dependabot[bot]' && needs.fetch_metadata.outputs.package-ecosystem == 'npm_and_yarn' && needs.fetch_metadata.outputs.update-type != 'version-update:semver-major' }}
-#    steps:
-#      - name: Checkout with ref ${{ github.sha }}
-#        uses: actions/checkout@v4
-#        with:
-#          ref: ${{ github.sha }}
-#      - name: Setup Node
-#        if: ${{ inputs.node_version }}
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: ${{ inputs.node_version }}
-#      - name: test
-#        shell: bash
-#        env:
-#          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
-#        run: |
-#          cd ${{ inputs.node_tests_path }} && npm install
-#          npm run test
-#      - name: Merge PR for npm package-ecosystem
 #        env:
 #          PR_URL: ${{ github.event.pull_request.html_url }}
 #          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
