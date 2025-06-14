@@ -36,11 +36,13 @@ jobs:
         run: |
           WORKFLOW_NAME="Dependabot auto-merges"
           current_run_id=${{ github.run_id }}
+          current_run_number=${{ github.run_number }}
 
           # Find the databaseId of the most recent completed run before the current one
-          gh run list --workflow "$WORKFLOW_NAME" --json
-#          previous_run=$(gh run list --workflow "$WORKFLOW_NAME" --json databaseId,status --jq \
-#          ".[] | select(.id < $current_run_id and .status == \"completed\") | .databaseId" | head -n 1)
+          previous_run=$(gh run list --workflow "$WORKFLOW_NAME" --json databaseId,number,status --jq \
+          ".[] | select(.number < $current_run_number and .status == \"completed\") | .databaseId" | head -n 1)
+          
+          echo ${previous_run}
 
 #          gh run watch "$previous_run"
 
