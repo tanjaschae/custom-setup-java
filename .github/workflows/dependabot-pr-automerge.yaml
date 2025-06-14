@@ -17,13 +17,11 @@ jobs:
     steps:
       - name: Checkout with ref ${{ github.sha }}
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
       - name: watch previous run
-        if: ${{ github.run_number > 1 }}
+        if: github.run_number > 1
         env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.DEPENDABOT_TOKEN}}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
         shell: bash
         run: |
           WORKFLOW_NAME="Dependabot auto-merges"
@@ -58,8 +56,8 @@ jobs:
     steps:
       - name: Merge PR for github_actions package-ecosystem
         env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.DEPENDABOT_TOKEN}}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
         shell: bash
         run: gh pr merge --auto --merge "$PR_URL"
 
@@ -81,13 +79,13 @@ jobs:
       - name: test
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
+          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
         run: |
           cd ${{ inputs.node_tests_path }} && npm install
           npm run test
       - name: Merge PR for npm package-ecosystem
         env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.DEPENDABOT_TOKEN}}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
         shell: bash
         run: gh pr merge --auto --merge "$PR_URL"
