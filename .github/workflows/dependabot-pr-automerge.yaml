@@ -53,7 +53,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          echo gh pr merge --auto --merge "$PR_URL"
+          gh pr merge --auto --merge "$PR_URL"
 
   automerge_github_actions_pull_request:
     runs-on: ubuntu-latest
