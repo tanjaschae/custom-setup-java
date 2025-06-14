@@ -4,6 +4,7 @@ on:
     types:
     - opened
     - reopened
+    - synchronize
 secrets:
   DEPENDABOT_TOKEN:
     required: true
