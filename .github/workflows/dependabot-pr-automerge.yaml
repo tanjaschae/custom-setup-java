@@ -69,13 +69,14 @@ jobs:
       - name: test
         shell: bash
         run: |
-          npm run test
+          npm install && npm run test
       - name: Merge PR for npm package-ecosystem
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.DEPENDABOT_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
-        run: gh pr merge --auto --merge "$PR_URL"
+        run: |
+          echo gh pr merge --auto --merge "$PR_URL"
 
 #  automerge_github_actions_pull_request:
 #    runs-on: ubuntu-latest
