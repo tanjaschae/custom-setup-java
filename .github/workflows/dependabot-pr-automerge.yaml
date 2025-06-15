@@ -59,6 +59,8 @@ jobs:
 
   fetch_metadata:
     runs-on: ubuntu-latest
+    needs:
+      - check_context
     if: github.actor == 'dependabot[bot]'
     outputs:
       package-ecosystem: ${{ steps.metadata.outputs.package-ecosystem }}
@@ -73,7 +75,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - fetch_metadata
-    if: ${{ github.actor == 'dependabot[bot]' && needs.fetch_metadata.outputs.package-ecosystem == 'npm_and_yarn' }}
+    if: ${{ github.actor == 'dependabot[bot]' && needs.fetch_metadata.outputs.package-ecosystem == 'npm_and_yarn' && needs.fetch_metadata.outputs.update-type != 'version-update:semver-major' }}
     steps:
       - name: Checkout with ref ${{ github.sha }}
         uses: actions/checkout@v4

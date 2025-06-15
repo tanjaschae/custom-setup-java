@@ -4,10 +4,10 @@ updates:
     directory: "/"             # Location of the `pom.xml` file in your project
     schedule:
       interval: "daily"        # Check for updates daily
-    groups:
-      npm:
-        patterns:
-          - "*"
+#    groups:
+#      npm:
+#        patterns:
+#          - "*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
