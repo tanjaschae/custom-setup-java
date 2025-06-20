@@ -37,7 +37,7 @@ jobs:
           if [ -z "$previous_run_in_progress" ]; then
             echo "✅ No previous in-progress run found. Continuing."
           else
-            max_wait=30  # 5 minutes
+            max_wait=300
             waited=0
             
             while true; do
