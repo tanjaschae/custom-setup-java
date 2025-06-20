@@ -26,12 +26,12 @@ jobs:
         if: github.run_number > 1
         shell: bash
         run: |
-          WORKFLOW_NAME="Dependabot auto-merges"
+          workflow_name="Dependabot auto-merges"
           # Get current run number
           current_run_number=${{ github.run_number }}
         
           # Search for earlier in-progress run of this workflow
-          previous_run_in_progress=$(gh run list --workflow "$workflow_name" --limit 50 --json databaseId,number,status --jq \
+          previous_run_in_progress=$(gh run list --workflow "${workflow_name}" --limit 10 --json databaseId,number,status --jq \
           ".[] | select(.number < $current_run_number and .status == \"in_progress\") | .databaseId" | head -n 1)
           
           if [ -z "$previous_run_in_progress" ]; then
