@@ -16,7 +16,7 @@ jobs:
     if: github.actor == 'dependabot[bot]'
     steps:
       - name: Checkout with ref ${{ github.sha }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.sha }}
       - name: watch previous run
@@ -78,7 +78,7 @@ jobs:
     if: ${{ github.actor == 'dependabot[bot]' && needs.fetch_metadata.outputs.package-ecosystem == 'npm_and_yarn' }}
     steps:
       - name: Checkout with ref ${{ github.sha }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.sha }}
       - name: Setup Node
